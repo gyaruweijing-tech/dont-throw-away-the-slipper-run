@@ -1,0 +1,15 @@
+/*
+ * sim ツール（`tools/`）専用の型検査。
+ *
+ * ★**`npm run build` の `tsc --noEmit` は `tools/` を見ていない**（`include` が `src` だけ）。
+ * 2026-08-26 に `sim:pacing` が型エラーではなく**実行時エラー**で落ちて気づいた。
+ * かといって本体の `tsconfig.json` に混ぜると、sim の型エラーで `build` が赤くなり
+ * 「ゲームが壊れた」に見える。**別ファイルに分けて、別のコマンドで回す。**
+ *
+ * 使い方: `npm run typecheck:tools`
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "lib": ["ES2022", "DOM", "DOM.Iterable"] },
+  "include": ["tools", "src"]
+}

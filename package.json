@@ -1,0 +1,39 @@
+{
+  "name": "dont-throw-away-the-slipper-run",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "sim:hit": "node tools/run.mjs tools/hit-check.ts",
+    "sim:gate": "node tools/run.mjs tools/gate-sim.ts",
+    "sim:phase3": "node tools/run.mjs tools/phase3-sim.ts",
+    "sim:balance": "node tools/run.mjs tools/balance.ts",
+    "sim:phase4": "node tools/run.mjs tools/phase4-sim.ts",
+    "sim:pacing": "node tools/run.mjs tools/pacing.ts",
+    "sim:stairs": "node tools/run.mjs tools/stairs-fill.ts",
+    "sim:skill": "node tools/run.mjs tools/skill.ts",
+    "sim:trap": "node tools/run.mjs tools/trap-check.ts",
+    "sim:knobs": "node tools/run.mjs tools/knobs.ts",
+    "sim:boss": "node tools/run.mjs tools/boss-hp.ts",
+    "typecheck:tools": "tsc --noEmit -p tsconfig.tools.json",
+    "sim:density": "node tools/run.mjs tools/density.ts",
+    "sim:wind": "node tools/run.mjs tools/wind.ts",
+    "sim:modes": "node tools/run.mjs tools/modes.ts",
+    "sim:math": "node tools/run.mjs tools/math-check.ts",
+    "sim:deal": "node tools/run.mjs tools/math-deal.ts",
+    "sim:variety": "node tools/run.mjs tools/math-variety.ts",
+    "sim:digit": "node tools/run.mjs tools/digit-hit.ts"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.20.0",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.169.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
