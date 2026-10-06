@@ -4,6 +4,7 @@ import { buildCutoutGeometry, createCutoutMaterial } from './Cutout';
 import { allyParts } from './cutoutLayout';
 import { charAtlas } from '../tex/atlas';
 import { paperGrain } from '../tex/paper';
+import { FIRST_SLIPPER, slipperCanvas, W as SLIP_W, H as SLIP_H } from '../slippers/catalog';
 
 const P = CFG.palette;
 const S = CFG.stairs;
@@ -73,6 +74,8 @@ export class Stairs {
   /** ★窓口（2026-09-26）。シャッターと奥の明かり */
   private readonly shutter: THREE.Mesh;
   private readonly windowLight: THREE.Mesh;
+  /** ★窓口の上の額縁（2026-10-06）。中身は履いているスリッパ */
+  private readonly sign: THREE.Mesh;
   private readonly shutterY: number;
   private readonly shutterH: number;
   /**
@@ -210,13 +213,14 @@ export class Stairs {
     this.shutterH = WIN_H;
     this.shutter.position.set(0, this.shutterY, wz - 0.05);
     this.group.add(this.shutter);
-    // 窓口の上の札（文字は使わない §4-I: 吹き出し＝「話を聞く場所」）
-    const sign = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.6, 1.3),
-      new THREE.MeshBasicMaterial({ map: makeSignTexture(), transparent: true }),
+    // 窓口の上の額縁（文字は使わない §4-I）。★校長室に飾ってあるスリッパ（本人 10/06）
+    this.sign = new THREE.Mesh(
+      // ★縦長（2:3）。窓口の上の壁いっぱい（下は窓の縁の少し上、上は軒の下）。横木より手前に出す
+      new THREE.PlaneGeometry(2.0, 3.0),
+      new THREE.MeshBasicMaterial({ map: makeSignTexture(FIRST_SLIPPER), transparent: true }),
     );
-    sign.position.set(0, topH + WIN_H + 1.5, wz + 0.02);
-    this.group.add(sign);
+    this.sign.position.set(0, topH + WIN_H + 1.82, wz + 0.1);
+    this.group.add(this.sign);
 
     /*
      * ★★**「届かなかったら上が暗くなる板」は捨てた**（2026-09-16・本人「成功か失敗かみたいなのになっている」）。
@@ -409,6 +413,14 @@ export class Stairs {
   /** リザルトへ進んでよいか */
   get settled(): boolean {
     return this.done && this.settleT >= S.settle && this.climbers.length === 0 && this.pending.length === 0;
+  }
+
+  /** ★額縁の中身を、履いているスリッパに差し替える */
+  setSlipper(id: string): void {
+    const m = this.sign.material as THREE.MeshBasicMaterial;
+    m.map?.dispose();
+    m.map = makeSignTexture(id);
+    m.needsUpdate = true;
   }
 
   hide(): void {
@@ -708,36 +720,150 @@ function makeShutterTexture(): THREE.CanvasTexture {
   return tex;
 }
 
-/** ★窓口の上の札。**文字を使わない**（§4-I）—— 吹き出しの中に「…」＝「話を聞く場所」 */
-function makeSignTexture(): THREE.CanvasTexture {
+/**
+ * ★窓口の上の額縁（2026-10-06・本人「吹き出しいらん。校長室に飾ってある感じ」）。
+ * 金の額・緑の羅紗・空の銘板（**文字は使わない** §4-I）。中身は図鑑の絵をそのまま使う＝履き替えたら追従する。
+ * ★同日の2回目（本人「小さすぎて見えない・荘厳な感じが欲しい・縦は素晴らしい」）: 額を縦長にしてスリッパを目いっぱい大きく、
+ * 後光（金の放射線）・光だまり・金の縁どり・額の頂の飾りで「飾られた聖遺物」にした
+ */
+function makeSignTexture(slipperId: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = 512;
+  canvas.height = 768;
   const g = canvas.getContext('2d') as CanvasRenderingContext2D;
-  g.fillStyle = '#efe9dc';
-  g.strokeStyle = '#2b2a28';
-  g.lineWidth = 8;
+  const ink = '#2b2a28';
+  const gold = '#c9a14a', goldDark = '#9a7430', goldLight = '#e3c46e', goldPale = '#f6e6a8';
+  const cx = 256;
+  // 吊り紐と釘
+  g.strokeStyle = ink;
+  g.lineWidth = 5;
   g.beginPath();
-  g.roundRect(8, 8, 240, 112, 14);
+  g.moveTo(150, 70);
+  g.lineTo(cx, 12);
+  g.lineTo(362, 70);
+  g.stroke();
+  g.fillStyle = ink;
+  g.beginPath();
+  g.arc(cx, 12, 9, 0, Math.PI * 2);
+  g.fill();
+  // 金の額（外枠 → 一段暗い溝 → 明るい縁 → もう一段の溝）。太くして重さを出す
+  g.fillStyle = gold;
+  g.strokeStyle = ink;
+  g.lineWidth = 7;
+  g.beginPath();
+  g.rect(24, 64, 464, 692);
   g.fill();
   g.stroke();
-  // 吹き出し
-  g.fillStyle = '#3f7fc4';
+  g.fillStyle = goldDark;
+  g.fillRect(42, 82, 428, 656);
+  g.fillStyle = goldLight;
+  g.fillRect(50, 90, 412, 640);
+  g.fillStyle = goldDark;
+  g.fillRect(64, 104, 384, 612);
+  // 額の頂の飾り（貝殻形の冠）。額の上辺に乗せる
+  g.fillStyle = gold;
+  g.strokeStyle = ink;
+  g.lineWidth = 5;
   g.beginPath();
-  g.ellipse(128, 58, 62, 36, 0, 0, Math.PI * 2);
+  g.moveTo(cx - 92, 70);
+  g.quadraticCurveTo(cx - 80, 22, cx, 30);
+  g.quadraticCurveTo(cx + 80, 22, cx + 92, 70);
+  g.closePath();
   g.fill();
-  g.beginPath();
-  g.moveTo(100, 84);
-  g.lineTo(88, 108);
-  g.lineTo(118, 90);
-  g.fill();
-  g.fillStyle = '#efe9dc';
-  for (const x of [104, 128, 152]) {
+  g.stroke();
+  g.strokeStyle = goldDark;
+  g.lineWidth = 3;
+  for (let i = -3; i <= 3; i++) {
     g.beginPath();
-    g.arc(x, 58, 8, 0, Math.PI * 2);
+    g.moveTo(cx, 66);
+    g.lineTo(cx + i * 24, 40 + Math.abs(i) * 4);
+    g.stroke();
+  }
+  g.fillStyle = goldPale;
+  g.strokeStyle = ink;
+  g.lineWidth = 3;
+  g.beginPath();
+  g.arc(cx, 30, 10, 0, Math.PI * 2);
+  g.fill();
+  g.stroke();
+  // 四隅の飾り（花形）
+  for (const [x, y] of [[36, 76], [476, 76], [36, 744], [476, 744]]) {
+    g.fillStyle = goldLight;
+    g.strokeStyle = ink;
+    g.lineWidth = 3;
+    for (let i = 0; i < 4; i++) {
+      const a = (i * Math.PI) / 2 + Math.PI / 4;
+      g.beginPath();
+      g.arc(x + Math.cos(a) * 9, y + Math.sin(a) * 9, 8, 0, Math.PI * 2);
+      g.fill();
+      g.stroke();
+    }
+    g.fillStyle = goldPale;
+    g.beginPath();
+    g.arc(x, y, 7, 0, Math.PI * 2);
+    g.fill();
+    g.stroke();
+  }
+  // 緑の羅紗（朱と藍は意味がある色なので避ける §4-I）
+  const fx = 72, fy = 112, fw = 368, fh = 596;
+  g.save();
+  g.beginPath();
+  g.rect(fx, fy, fw, fh);
+  g.clip();
+  g.fillStyle = '#35523f';
+  g.fillRect(fx, fy, fw, fh);
+  const sy = 372; // スリッパの中心
+  // 後光：金の放射線（細い扇を交互に）
+  g.fillStyle = 'rgba(246, 230, 168, 0.22)';
+  const rays = 28;
+  for (let i = 0; i < rays; i += 2) {
+    const a0 = (i / rays) * Math.PI * 2, a1 = ((i + 1) / rays) * Math.PI * 2;
+    g.beginPath();
+    g.moveTo(cx, sy);
+    g.lineTo(cx + Math.cos(a0) * 700, sy + Math.sin(a0) * 700);
+    g.lineTo(cx + Math.cos(a1) * 700, sy + Math.sin(a1) * 700);
+    g.closePath();
+    g.fill();
+  }
+  // 光だまり（中心が明るく、四隅は沈む）
+  const glow = g.createRadialGradient(cx, sy, 20, cx, sy, 300);
+  glow.addColorStop(0, 'rgba(255, 240, 190, 0.75)');
+  glow.addColorStop(0.45, 'rgba(240, 210, 130, 0.25)');
+  glow.addColorStop(1, 'rgba(10, 25, 15, 0.45)');
+  g.fillStyle = glow;
+  g.fillRect(fx, fy, fw, fh);
+  g.restore();
+  // 羅紗の内側の金の細線
+  g.strokeStyle = goldLight;
+  g.lineWidth = 3;
+  g.strokeRect(fx + 10, fy + 10, fw - 20, fh - 20);
+  // スリッパ（図鑑の絵のまま縦に立てる・本人 10/06「縦のほうが好み」）。羅紗いっぱいに
+  const k = Math.min(500 / SLIP_H, 300 / SLIP_W);
+  const w = SLIP_W * k, h = SLIP_H * k;
+  const slip = slipperCanvas(slipperId);
+  // 金の縁どり：金色の光を重ねて描いてから本体
+  g.save();
+  g.shadowColor = 'rgba(255, 214, 110, 0.95)';
+  g.shadowBlur = 28;
+  for (let i = 0; i < 3; i++) g.drawImage(slip, cx - w / 2, sy - h / 2, w, h);
+  g.restore();
+  g.drawImage(slip, cx - w / 2, sy - h / 2, w, h);
+  // 空の銘板（文字は使わない §4-I）
+  g.fillStyle = '#d8b860';
+  g.strokeStyle = ink;
+  g.lineWidth = 3;
+  g.beginPath();
+  g.rect(cx - 64, 650, 128, 28);
+  g.fill();
+  g.stroke();
+  g.fillStyle = ink;
+  for (const x of [cx - 56, cx + 56]) {
+    g.beginPath();
+    g.arc(x, 664, 3, 0, Math.PI * 2);
     g.fill();
   }
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
   return tex;
 }

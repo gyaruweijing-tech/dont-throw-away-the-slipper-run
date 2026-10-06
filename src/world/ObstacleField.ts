@@ -512,6 +512,21 @@ export class ObstacleField {
     if (digit > o.digitDone) {
       crowd.shrinkDigits(1 - (1 - digit) / (1 - o.digitDone));
       o.digitDone = digit;
+      /*
+       * ★★**割合のぶんは「いまの人数」に掛け直す**（2026-10-06・本人「A で直して」）。
+       * 前は触れ始めの人数（`o.base`）のまま引いていたので、10²⁰ 人が桁で 10¹³ 人になったあと
+       * **10²⁰ × 45% を引いて 1人**になっていた（自動走行180本中、障害物で1人に落ちたのが69本）。
+       * ★比べる相手は「この障害物が思っている人数（`base − lossDone`）」。並んだとげの**隣が先に桁を奪った**ぶんも、
+       * 触れている間にゲートで増えたぶんもここで揃う（直前の人数と比べるだけだと、並んだとげで同じ全滅が残った）。
+       * ★割合を止めるだけにしないのは、桁が満額で効かない 10⁶〜10¹² 人で**ほぼ効かない帯**ができるから
+       */
+      const expected = o.base - o.lossDone;
+      if (expected > 0) {
+        const k = crowd.count / expected;
+        o.base *= k;
+        o.lossDone *= k;
+        target *= k;
+      }
     }
 
     const inc = target - o.lossDone;

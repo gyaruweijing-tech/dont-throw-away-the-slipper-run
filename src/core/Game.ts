@@ -1085,6 +1085,7 @@ export class Game {
     (u.uSlipRect.value as THREE.Vector4).set(r.u, r.v, r.w, r.h);
     u.uReAmt.value = 0;
     this.toss.setTexture(tex);
+    this.stairs.setSlipper(this.wearId);
     this.glowKind = slipperById(this.wearId).glow;
     this.glow.visible = this.glowKind !== undefined;
     const m = this.glow.material as THREE.SpriteMaterial;

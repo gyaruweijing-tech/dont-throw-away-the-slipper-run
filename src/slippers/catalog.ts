@@ -1034,6 +1034,11 @@ export function slipperUrl(id: string): string {
   return u;
 }
 
+/** ★ゴールの額縁に入れる元の絵（2026-10-06）。別の絵に描き込むとき用 */
+export function slipperCanvas(id: string): HTMLCanvasElement {
+  return canvasOf(id);
+}
+
 /** 3D に貼る絵 */
 export function slipperTexture(id: string): THREE.CanvasTexture {
   const hit = textures.get(id);
