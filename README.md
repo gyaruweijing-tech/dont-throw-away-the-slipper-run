@@ -6,7 +6,7 @@ A browser crowd-runner game. Pick the gates that grow your crowd, dodge obstacle
 
 ## Play
 
-(coming soon)
+Play in your browser on itch.io: https://ifyoutosstheslippers.itch.io/dont-throw-away-the-slipper-run
 
 ## Controls
 
